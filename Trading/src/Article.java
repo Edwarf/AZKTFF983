@@ -5,7 +5,13 @@ import org.jsoup.select.Elements;
 import java.util.ArrayList;
 public class Article
 {
-		public static String[] RecognizedSites = {"marketwatch.com, seekingalpha.com"};
+		double Weight;
+		//Make these loaded from text files eventually
+		private static String[] GoodNewsIndicators = {"upgraded", "success", "beat the market", "good returns", "good buy", "appealing", "fast growing", "fast growth", 
+				"impressive", "grew", "advanced"};
+		private static String[] BadNewsIndicators = {"downgraded", "loss", "underperforming", "bad returns", "bad buy", "selloff", "sell now", "slow growing", "slow growth",
+				"disappointing", "step backwards", "setback"};
+		public static String[] RecognizedSites = {"marketwatch.com", "seekingalpha.com"};
 		protected String URL;
 		protected String title;
 		protected String author;
@@ -46,8 +52,9 @@ public class Article
 				contents = "Not Found";
 			}
 		}
-		Article(String _URL)
+		Article(String _URL, double _Weight)
 		{
+			Weight = _Weight;
 			URL = _URL;
 			Document article;
 			//Try to connect, fill article.
@@ -62,6 +69,46 @@ public class Article
 				System.out.println("Could not fetch article: " + except.getStackTrace());
 			}
 			
+		}
+		private double CountGoodNews()
+		{ 
+			double GoodThingsCounter = 0;
+			String[] WordContent = contents.split(" ");
+			for(String Word: WordContent)
+			{			
+				for(String Indicator : GoodNewsIndicators)
+				{
+				   if(Indicator.contains(Word))
+				   {
+					   GoodThingsCounter++;
+					   break;
+				   }
+				} 
+			}
+			return GoodThingsCounter;
+		}
+		private double CountBadNews()
+		{ 
+			double BadThingsCounter = 0;
+			String[] WordContent = contents.split(" ");
+			for(String Word: WordContent)
+			{
+				for(String Indicator : BadNewsIndicators)
+				{
+				   if(Indicator.contains(Word))
+				   {
+					   BadThingsCounter++;
+					   break;
+				   }
+				} 
+			}
+			return BadThingsCounter;
+		}
+		//Average of good/bad news
+		public double ReturnNewsValue()
+		{
+			//System.out.println(((CountGoodNews() - CountBadNews()) / (CountGoodNews() + CountBadNews())) * Weight);
+			return ((CountGoodNews() - CountBadNews()) / (CountGoodNews() + CountBadNews())) * Weight;
 		}
 		String GetURL()
 		{
